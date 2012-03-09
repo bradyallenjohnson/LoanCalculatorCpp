@@ -44,7 +44,7 @@ class LoanCalculator
 {
 public:
   LoanCalculator();
-  ~LoanCalculator();
+  ~LoanCalculator() {}
 
   //
   // Setters and Getters
@@ -53,14 +53,14 @@ public:
   /**
    * Total loan amount A
    */
-  void setAmount(float A);
-  float getAmount();
+  inline void setAmount(float A) { amount_ = A; amountSet_ = true; }
+  inline float getAmount() const { return amount_; }
 
   /**
    * Initial down payment
    */
-  void setInitialPayment(float initialA);
-  float getInitialPayment();
+  inline void setInitialPayment(float initialA)  { initialPayment_ = initialA; }
+  inline float getInitialPayment() const         { return initialPayment_; }
 
   /**
    * Yearly interest rate i as in 6.75
@@ -69,24 +69,24 @@ public:
    *    getInterest() will return 6.75
    *    getPeriodicInterest() will return .0675/12.0
    */
-  void setInterest(float i);
-  float getInterest();
-  float getPeriodicInterest();
+  void setInterest(float i) { interest_ = i; interestPeriodic_ = i/100.0/12.0; interestSet_ = true; }
+  inline float getInterest() const         { return interest_; }
+  inline float getPeriodicInterest() const { return interestPeriodic_; }
 
-  void setPayment(float P);
-  float getPayment();
+  void setPayment(float P)        { payment_ = P; paymentSet_ = true; }
+  inline float getPayment() const { return payment_; }
 
-  void setPeriodTotal(int N);
-  int getPeriodTotal();
+  void setPeriodTotal(int N)        { periodTotal_ = N; periodTotalSet_ = true; }
+  inline int getPeriodTotal() const { return periodTotal_; }
 
-  void setPeriodElapsed(int n);
-  int getPeriodElapsed();
+  void setPeriodElapsed(int n)         { periodElapsed_ = n; periodElapsedSet_ = true; }
+  inline int getPeriodElapsed() const  { return periodElapsed_; }
 
-  void setOpeningFee(float fee);
-  float getOpeningFee();
+  inline void setOpeningFee(float fee) { openingFee_ = fee; }
+  inline float getOpeningFee() const   { return openingFee_; }
 
-  void setOpeningPercent(float percent);
-  float getOpeningPercent();
+  inline void setOpeningPercent(float percent) { openingPercent_ = percent; }
+  inline float getOpeningPercent() const       { return openingPercent_; }
 
   //
   // The actual calculation methods

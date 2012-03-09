@@ -1,4 +1,6 @@
 
+#include <stdlib.h>
+
 #include <exception>
 #include <iostream>
 #include <stdexcept>
@@ -86,7 +88,7 @@ CALC_TYPE parseCommandLine(int argc, char **argv, LoanCalculator &calculator)
     if(argc == 2 && ARG_HELP == argv[1])
     {
       printUsage();
-      exit(1);
+      return ct;
     }
 
     throw invalid_argument("Invalid number of command line arguments");
@@ -156,7 +158,7 @@ CALC_TYPE parseCommandLine(int argc, char **argv, LoanCalculator &calculator)
     else if(ARG_HELP == argvStr)
     {
       printUsage();
-      exit(1);
+      return CALC_UNKNOWN;
     }
     else
     {
@@ -224,6 +226,11 @@ int main(int argc, char **argv)
     else if(ct == CALC_INTEREST)
     {
       cout << "Yearly Interest Rate = " << (float) calculator.calculateInterestRate() << "%" << endl;
+    }
+    else if(ct == CALC_UNKNOWN)
+    {
+      // most likely the case that help was selected
+      return 1;
     }
     else
     {
