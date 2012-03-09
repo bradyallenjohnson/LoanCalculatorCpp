@@ -6,13 +6,21 @@
 #include <stdexcept>
 #include <string>
 
+#include <CmdLineParser.h>
 #include <LoanCalculator.h>
 
 using namespace std;
 
-//
-// Some commonly used constants
-//
+enum CALC_TYPE
+{
+  CALC_UNKNOWN=0,
+  CALC_BALANCE=100,
+  CALC_PAYMENT,
+  CALC_NUMPAYMENTS,
+  CALC_AMOUNT,
+  CALC_INTEREST
+};
+
 const string ARG_CALC_BALANCE      = "-cb";
 const string ARG_CALC_PAYMENT      = "-cp";
 const string ARG_CALC_NUMPAYMENTS  = "-cn";
@@ -28,142 +36,76 @@ const string ARG_INTEREST          = "-i";
 const string ARG_OPENFEE           = "-of";
 const string ARG_OPENPERCENT       = "-op";
 
-const string ARG_HELP = "-h";
-
-enum CALC_TYPE
+void loadCmdLine(CmdLineParser &clp)
 {
-  CALC_UNKNOWN=0,
-  CALC_BALANCE=100,
-  CALC_PAYMENT,
-  CALC_NUMPAYMENTS,
-  CALC_AMOUNT,
-  CALC_INTEREST
-};
+  // Calculation types
+  clp.addMutExclCmdLineOption(new CmdLineOptionFlag(ARG_CALC_BALANCE,
+         "Calculate the loan balance after making several payments, given:\n"
+         "\t\t loan amount, interest, monthly payment and number of monthly payments made so far",
+         false, CALC_BALANCE));
+  clp.addMutExclCmdLineOption(new CmdLineOptionFlag(ARG_CALC_PAYMENT,
+         "Calculate the monthly loan payment, given: loan amount, loan period, and interest",
+         false, CALC_PAYMENT));
+  clp.addMutExclCmdLineOption(new CmdLineOptionFlag(ARG_CALC_NUMPAYMENTS,
+         "Calculate the number of payments needed to pay a loan, given: loan amount, monthly payment, interest",
+         false, CALC_NUMPAYMENTS));
+  clp.addMutExclCmdLineOption(new CmdLineOptionFlag(ARG_CALC_AMOUNT,
+         "Calculate the initial loan amount, given: monthly payment, loan period, and interest",
+         false, CALC_AMOUNT));
+  clp.addMutExclCmdLineOption(new CmdLineOptionFlag(ARG_CALC_INTEREST,
+         "Calculate the loan interest, given: loan amount, loan period, and monthly payment",
+         false, CALC_INTEREST));
+  clp.setMutExclUsageText("Calculations");
 
-// Help
-void printUsage()
-{
-  cout << "\nUsage:\n"
-       << "Input values:\n"
-       << "\t " << ARG_AMOUNT << " Set the initial amount. Ej: 19300\n"
-       << "\t " << ARG_INITIAL_PAYMENT << " Set the initial payment, loan will be for (initial amount - initial payment) Ej: 1000, Default 0.0\n"
-       << "\t " << ARG_INTEREST << " Set the yearly interest rate. Ej: 6.75\n"
-       << "\t " << ARG_PAYMENT << " Set the monthly loan payment. Ej: 325.67\n"
-       << "\t " << ARG_PERIOD_TOTAL << " Set the total loan period in months. Ej: 60\n"
-       << "\t " << ARG_PERIOD_ELAPSED << " Set the elapsed period in months. Ej: 32\n"
-       << "\t " << ARG_OPENFEE << " Set fees for opening the loan. Ej: 100, Default 0.0\n"
-       << "\t " << ARG_OPENPERCENT << " Set fees for opening the loan, charged as a percentage. Ej: 2.75%, Default 0.0%\n"
-
-       << "Calculations, one of the following:\n"
-       << "\t " << ARG_CALC_PAYMENT
-       << " Calculate the monthly loan payment, given: loan amount, loan period, and interest\n"
-
-       << "\t " << ARG_CALC_AMOUNT
-       << " Calculate the initial loan amount, given: monthly payment, loan period, and interest\n"
-
-       << "\t " << ARG_CALC_INTEREST
-       << " Calculate the loan interest, given: loan amount, loan period, and monthly payment\n"
-
-       << "\t " << ARG_CALC_NUMPAYMENTS
-       << " Calculate the number of payments needed to pay a loan, given: loan amount, monthly payment, interest\n"
-
-       << "\t " << ARG_CALC_BALANCE
-       << " Calculate the loan balance after making several payments, given:\n"
-       << "\t\t loan amount, interest, monthly payment and number of monthly payments made so far\n"
-
-       << "Other options:\n"
-       << "\t " << ARG_HELP << " Display this message\n"
-       << endl;
+  // Different values
+  clp.addCmdLineOption(new CmdLineOptionFloat( ARG_PAYMENT, "Set the monthly loan payment. Ej: 325.67"));
+  clp.addCmdLineOption(new CmdLineOptionInt(   ARG_PERIOD_TOTAL, "Set the total loan period in months. Ej: 60"));
+  clp.addCmdLineOption(new CmdLineOptionInt(   ARG_PERIOD_ELAPSED, "Set the elapsed period in months. Ej: 32"));
+  clp.addCmdLineOption(new CmdLineOptionInt(   ARG_AMOUNT, "Set the initial amount. Ej: 19300"));
+  clp.addCmdLineOption(new CmdLineOptionFloat( ARG_INITIAL_PAYMENT,
+         "Set the initial payment, loan will be for (initial amount - initial payment) Ej: 1000, Default 0.0"));
+  clp.addCmdLineOption(new CmdLineOptionFloat( ARG_INTEREST, "Set the yearly interest rate. Ej: 6.75"));
+  clp.addCmdLineOption(new CmdLineOptionFloat( ARG_OPENFEE, "Set fees for opening the loan. Ej: 100, Default 0.0"));
+  clp.addCmdLineOption(new CmdLineOptionFloat( ARG_OPENPERCENT,
+         "Set fees for opening the loan, charged as a percentage. Ej: 2.75%, Default 0.0%"));
+  
+  clp.setMinNumberArgs(3);
 }
 
 //
 // Simple Command line parser
 //
-CALC_TYPE parseCommandLine(int argc, char **argv, LoanCalculator &calculator)
+CALC_TYPE parseCommandLine(int argc, char **argv, CmdLineParser &clp, LoanCalculator &calculator)
 {
-  CALC_TYPE ct = CALC_UNKNOWN;
+  CALC_TYPE ct(CALC_UNKNOWN);
 
-  if(argc < 3)
+  if(!clp.parseCmdLine(argc, argv))
   {
-    if(argc == 2 && ARG_HELP == argv[1])
-    {
-      printUsage();
-      return ct;
-    }
-
-    throw invalid_argument("Invalid number of command line arguments");
+    clp.printUsage();
+    return ct;
   }
 
-  for(int i = 1; i < argc; i++)
+  calculator.setAmount(
+       ((CmdLineOptionInt*)   clp.getCmdLineOption(ARG_AMOUNT))->getValue());
+  calculator.setInitialPayment(
+       ((CmdLineOptionFloat*) clp.getCmdLineOption(ARG_INITIAL_PAYMENT))->getValue());
+  calculator.setInterest(
+       ((CmdLineOptionFloat*) clp.getCmdLineOption(ARG_INTEREST))->getValue());
+  calculator.setPayment(
+       ((CmdLineOptionFloat*) clp.getCmdLineOption(ARG_PAYMENT))->getValue());
+  calculator.setPeriodTotal(
+       ((CmdLineOptionInt*)   clp.getCmdLineOption(ARG_PERIOD_TOTAL))->getValue());
+  calculator.setPeriodElapsed(
+       ((CmdLineOptionInt*)   clp.getCmdLineOption(ARG_PERIOD_ELAPSED))->getValue());
+  calculator.setOpeningFee(
+       ((CmdLineOptionFloat*) clp.getCmdLineOption(ARG_OPENFEE))->getValue());
+  calculator.setOpeningPercent(
+       ((CmdLineOptionFloat*) clp.getCmdLineOption(ARG_OPENPERCENT))->getValue());
+
+  CmdLineOption *option(clp.getMutExclOption());
+  if(option != NULL) // cant be NULL, else the parser mutExcl checking didnt work
   {
-    string argvStr = argv[i];
-
-       // input values
-    if(ARG_AMOUNT == argvStr)
-    {
-      calculator.setAmount(atof(argv[++i]));
-    }
-    else if(ARG_INITIAL_PAYMENT == argvStr)
-    {
-      calculator.setInitialPayment(atof(argv[++i]));
-    }
-    else if(ARG_INTEREST == argvStr)
-    {
-      calculator.setInterest(atof(argv[++i]));
-    }
-    else if(ARG_PAYMENT == argvStr)
-    {
-      calculator.setPayment(atof(argv[++i]));
-    }
-    else if(ARG_PERIOD_TOTAL == argvStr)
-    {
-      calculator.setPeriodTotal(atoi(argv[++i]));
-    }
-    else if(ARG_PERIOD_ELAPSED == argvStr)
-    {
-      calculator.setPeriodElapsed(atoi(argv[++i]));
-    }
-    else if(ARG_OPENFEE == argvStr)
-    {
-      calculator.setOpeningFee(atof(argv[++i]));
-    }
-    else if(ARG_OPENPERCENT == argvStr)
-    {
-      calculator.setOpeningPercent(atof(argv[++i]));
-    }
-
-       // calculation types
-    else if(ARG_CALC_AMOUNT == argvStr)
-    {
-      ct = CALC_AMOUNT;
-    }
-    else if(ARG_CALC_BALANCE == argvStr)
-    {
-      ct = CALC_BALANCE;
-    }
-    else if(ARG_CALC_INTEREST == argvStr)
-    {
-      ct = CALC_INTEREST;
-    }
-    else if(ARG_CALC_NUMPAYMENTS == argvStr)
-    {
-      ct = CALC_NUMPAYMENTS;
-    }
-    else if(ARG_CALC_PAYMENT == argvStr)
-    {
-      ct = CALC_PAYMENT;
-    }
-
-       // Other args
-    else if(ARG_HELP == argvStr)
-    {
-      printUsage();
-      return CALC_UNKNOWN;
-    }
-    else
-    {
-      throw invalid_argument("Invalid command line argument: " + argvStr );
-    }
+    ct = (CALC_TYPE) ((CmdLineOptionFlag*) option)->getValueKey();
   }
 
   return ct;
@@ -175,21 +117,13 @@ CALC_TYPE parseCommandLine(int argc, char **argv, LoanCalculator &calculator)
 int main(int argc, char **argv)
 {
   LoanCalculator calculator;
-  CALC_TYPE ct;
+  CmdLineParser clp;
 
   //
   // Parse the command line arguments
   //
-  try
-  {
-    ct = parseCommandLine(argc, argv, calculator);
-  }
-  catch(const exception &e)
-  {
-    cerr << "Error parsing command line: " << e.what() << endl;
-    printUsage();
-    return 0;
-  }
+  loadCmdLine(clp);
+  CALC_TYPE ct = parseCommandLine(argc, argv, clp, calculator);
 
   try
   {
