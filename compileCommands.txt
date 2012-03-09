@@ -1,3 +1,0 @@
-g++ -c LoanCalculator.cpp -o LoanCalculator.o
-g++ -c LoanCalculatorMain.cpp -o LoanCalculatorMain.o -I.
-g++ -o LoanCalculator LoanCalculator.o LoanCalculatorMain.o
