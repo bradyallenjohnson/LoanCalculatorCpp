@@ -1,0 +1,41 @@
+A simple loan calculator written in C++ using a Qt GUI.
+
+The following can be calculated given the correct inputs:
+- Monthly Payment
+- Amount
+- Interest
+- Number of payments
+- Balance
+
+Inputs are the following and should be supplied depending on the aforementioned calculation type:
+- Amount
+- Initial Payment
+- Loan Fee %
+- Interest %
+- Payment
+- Months
+
+Usage:
+Input values:
+	 -N Set the total loan period in months. Ej: 60
+	 -a Set the initial amount. Ej: 19300
+	 -ai Set the initial payment, loan will be for (initial amount - initial payment) Ej: 1000, Default 0.0
+	 -ca Calculate the initial loan amount, given: monthly payment, loan period, and interest
+	 -cb Calculate the loan balance after making several payments, given:
+		 loan amount, interest, monthly payment and number of monthly payments made so far
+	 -ci Calculate the loan interest, given: loan amount, loan period, and monthly payment
+	 -cn Calculate the number of payments needed to pay a loan, given: loan amount, monthly payment, interest
+	 -cp Calculate the monthly loan payment, given: loan amount, loan period, and interest
+	 -i Set the yearly interest rate. Ej: 6.75
+	 -n Set the elapsed period in months. Ej: 32
+	 -of Set fees for opening the loan. Ej: 100, Default 0.0
+	 -op Set fees for opening the loan, charged as a percentage. Ej: 2.75%, Default 0.0%
+	 -p Set the monthly loan payment. Ej: 325.67
+
+Calculations: Mutually Exclusive options, one and only one can be set:
+	-cb -cp -cn -ca -ci 
+
+Use one of the following options to display this message:
+	 -h -help --h --help -?
+
+With no options set, a GUI will be launched
