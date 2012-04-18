@@ -41,6 +41,9 @@ const string ARG_OPENPERCENT       = "-op";
 
 void loadCmdLine(CmdLineParser &clp)
 {
+  clp.setMainHelpText("A simple loan calculator");
+  clp.setMainHelpTextEnd("With no options set, a GUI will be launched");
+
   // Calculation types
   clp.addMutExclCmdLineOption(new CmdLineOptionFlag(ARG_CALC_BALANCE,
          "Calculate the loan balance after making several payments, given:\n"
