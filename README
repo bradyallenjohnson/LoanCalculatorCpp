@@ -1,5 +1,10 @@
 A simple loan calculator written in C++ using a Qt GUI.
 
+Can be compiled with either make or SCons as follows:
+# make
+-- OR --
+# scons
+
 The following can be calculated given the correct inputs:
 - Monthly Payment
 - Amount
