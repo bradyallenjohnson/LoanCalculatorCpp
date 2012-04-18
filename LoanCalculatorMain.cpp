@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <string>
 
+#include <QApplication>
+
+#include <LoanCalcQtMainWindow.h>
 #include <CmdLineParser.h>
 #include <LoanCalculator.h>
 
@@ -117,11 +120,22 @@ CALC_TYPE parseCommandLine(int argc, char **argv, CmdLineParser &clp, LoanCalcul
 int main(int argc, char **argv)
 {
   LoanCalculator calculator;
-  CmdLineParser clp;
+
+  // If no arguments are given, then launch the GUI
+  if(argc == 1)
+  {
+    QApplication app(argc, argv);
+
+    LoanCalcQtMainWindow mainWindow(&calculator);
+    mainWindow.show();
+
+    return app.exec();
+  }
 
   //
   // Parse the command line arguments
   //
+  CmdLineParser clp;
   loadCmdLine(clp);
   CALC_TYPE ct = parseCommandLine(argc, argv, clp, calculator);
 

@@ -12,13 +12,13 @@ using namespace std;
 
 LoanCalculator::LoanCalculator() :
   amountSet_(false),
+  initialPayment_(0.0),
   interestSet_(false),
   paymentSet_(false),
   periodTotalSet_(false),
   periodElapsedSet_(false),
   openingFee_(0.0),
-  openingPercent_(0.0),
-  initialPayment_(0.0)
+  openingPercent_(0.0)
 {
 }
 

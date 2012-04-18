@@ -88,6 +88,12 @@ public:
   inline void setOpeningPercent(float percent) { openingPercent_ = percent; }
   inline float getOpeningPercent() const       { return openingPercent_; }
 
+  inline void reset() {
+    amount_ = initialPayment_ = interest_ = interestPeriodic_ = payment_ = openingFee_ = openingPercent_ = 0.0;
+    periodTotal_ = periodElapsed_ = 0;
+    amountSet_ = interestSet_ = paymentSet_ = periodTotalSet_ = periodElapsedSet_ = false;
+  }
+
   //
   // The actual calculation methods
   //
